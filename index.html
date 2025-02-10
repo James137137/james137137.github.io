@@ -1,83 +1,467 @@
-<!doctype html>
-<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
-<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sailing Race Course Navigator</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    /* General page styling */
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    .page { display: none; padding: 20px; }
+    .active { display: block; }
+    .container { max-width: 600px; margin: auto; text-align: center; }
+    button { padding: 10px 15px; margin: 5px; font-size: 1em; }
+    input { padding: 5px; margin: 5px; }
 
-  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
-  <link rel="stylesheet" href="stylesheets/github-dark.css">
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <script type="text/javascript" src="javascripts/script.js"></script>
+    /* Home page */
+    #homeSection {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #homeSection .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
 
-  <title>James137137.GitHub.io</title>
-  <meta name="description" content="">
+    /* Map container styling */
+    #createMap, #navMap { height: 500px; width: 100%; }
 
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-
+    /* Navigation Mode specific styles */
+    #compassContainer {
+      width: 200px;
+      height: 200px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      position: relative;
+      margin: 20px auto;
+      background: #f0f0f0;
+      display: none;
+    }
+    #compassNeedle {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      width: 4px;
+      height: 90px;
+      background: red;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+    }
+    .top-bar, .info { background: #eee; padding: 10px; text-align: center; }
+  </style>
 </head>
-
 <body>
-
-  <div class="wrapper">
-    <header>
-      <h1 class="title">James137137.GitHub.io</h1>
-    </header>
-    <div id="container">
-      <p class="tagline"></p>
-      <div id="main" role="main">
-        <div class="download-bar">
-        <div class="inner">
-          <a href="https://github.com/James137137" class="code">View James137137.GitHub.io on GitHub</a>
-        </div>
-        <span class="blc"></span><span class="trc"></span>
-        </div>
-        <article class="markdown-body">
-          <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</p>
-
-<h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We’ve crafted some handsome templates for you to use. Go ahead and click 'Continue to layouts' to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved.</p>
-
-<h3>
-<a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span class="octicon octicon-link"></span></a>Creating pages manually</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
-        </article>
-      </div>
+  <!-- Home Section -->
+  <div id="homeSection" class="page active">
+    <div class="container">
+      <h1>Sailing Race Course Navigator</h1>
+      <button onclick="showSection('createSection')">Course Creation Mode</button>
+      <button onclick="showSection('navigateSection')">Race Navigation Mode</button>
     </div>
-    <footer>
-      <div class="owner">
-
-      <p><a href="https://github.com/James137137" class="avatar"><img src="https://avatars0.githubusercontent.com/u/2226031?v=3&amp;s=60" width="48" height="48"></a>View <a href="https://github.com/James137137">James137137</a> on <a href="https://www.github.com">GitHub</a></p>
-
-      </div>
-      <div class="creds">
-        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
-      </div>
-    </footer>
-  </div>
-  <div class="current-section">
-    <a href="#top">Scroll to top</a>
-    <a href="https://github.com/James137137/james137137.github.io/tarball/master" class="tar">tar</a><a href="https://github.com/James137137/james137137.github.io/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
-    <p class="name"></p>
   </div>
 
-  
+  <!-- Course Creation Section -->
+  <div id="createSection" class="page">
+    <div class="container">
+      <h1>Course Creation Mode</h1>
+      <div class="controls">
+        <label for="courseName">Course Name:</label>
+        <input type="text" id="courseName" placeholder="Enter course name" />
+        <button id="saveCourse">Save Course</button>
+      </div>
+      <div id="createMap"></div>
+      <p>Right-click on a marker to remove it. Drag markers to reposition.</p>
+      <button onclick="showSection('homeSection')">Back to Home</button>
+    </div>
+  </div>
+
+  <!-- Race Navigation Section -->
+  <div id="navigateSection" class="page">
+    <div class="container">
+      <div class="top-bar">
+        <label for="courseSelect">Select Course:</label>
+        <select id="courseSelect"></select>
+        <button id="startRace">Start Race</button>
+        <button id="toggleMode">Switch to Compass Mode</button>
+        <br/>
+        <label for="windInput">Wind Direction (°):</label>
+        <input type="number" id="windInput" value="0" min="0" max="365" step="1" />
+        <label for="trueNorthInput">True North Adj (°):</label>
+        <input type="number" id="trueNorthInput" value="0" min="-180" max="180" step="1" />
+      </div>
+      <div id="navMap" style="height:400px;"></div>
+      <div id="compassContainer">
+        <div id="compassNeedle"></div>
+      </div>
+      <div class="info">
+        <p id="currentWaypoint">Current Waypoint: N/A</p>
+        <p id="nextWaypoint">Next Waypoint: N/A</p>
+        <p id="directionDisplay">Direction: N/A</p>
+        <p id="distanceDisplay">Distance: N/A</p>
+        <p id="progress">Progress: N/A</p>
+        <button id="prevButton">Previous Waypoint (Manual)</button>
+        <button id="nextButton">Next Waypoint (Manual)</button>
+      </div>
+      <button onclick="showSection('homeSection')">Back to Home</button>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    /***********************************************
+     * Global Data & Utility Functions
+     ***********************************************/
+    // Load courses from localStorage or use preexisting data
+    let courses = JSON.parse(localStorage.getItem('courses')) || {
+      "JamesTest": {
+        "name": "JamesTest",
+        "waypoints": [
+          {"lat": -36.971097339475314, "lng": 174.8817873001099, "name": "Start"},
+          {"lat": -36.97003444305618, "lng": 174.8822271823883, "name": "2"},
+          {"lat": -36.97119162795703, "lng": 174.88481283187866, "name": "3"},
+          {"lat": -36.97465397011197, "lng": 174.882345199585, "name": "4"},
+          {"lat": -36.96220744683523, "lng": 174.85208988189697, "name": "5"},
+          {"lat": -36.964196284129635, "lng": 174.92165565490723, "name": "6"}
+        ]
+      },
+      "JamesTest2": {
+        "name": "JamesTest2",
+        "waypoints": [
+          {"lat": -36.97092349478092, "lng": 174.88171219825745, "name": "Start"},
+          {"lat": -36.97003203223594, "lng": 174.88199919462204, "name": "2"},
+          {"lat": -36.97118493133576, "lng": 174.88121867179873, "name": "3"},
+          {"lat": -36.9718042323785, "lng": 174.88199114799502, "name": "4"},
+          {"lat": -36.97125993346033, "lng": 174.88132864236835, "name": "5"},
+          {"lat": -36.97093635233739, "lng": 174.88170683383944, "name": "6"}
+        ]
+      },
+      "Jack Test": {
+        "name": "Jack Test",
+        "waypoints": [
+          {"lat": -36.930336639968445, "lng": 174.92064714431766, "name": "Start"},
+          {"lat": -36.92995070667834, "lng": 174.92098510265353, "name": "End"},
+          {"lat": -36.93040525012657, "lng": 174.9207812547684, "name": "End 2"}
+        ]
+      }
+    };
+
+    // Persist courses to localStorage
+    function persistCourses() {
+      localStorage.setItem('courses', JSON.stringify(courses));
+    }
+
+    // Section switching: show one .page at a time
+    function showSection(sectionId) {
+      document.querySelectorAll('.page').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      document.getElementById(sectionId).classList.add('active');
+      // Initialize maps when their section is shown
+      if (sectionId === 'createSection') {
+        setTimeout(function(){
+          if (!window.createMap) {
+            initCreateMode();
+          } else {
+            window.createMap.invalidateSize();
+          }
+        }, 200);
+      } else if (sectionId === 'navigateSection') {
+        setTimeout(function(){
+          if (!window.navMap) {
+            initNavMode();
+          } else {
+            window.navMap.invalidateSize();
+          }
+          populateCourseSelect();
+        }, 200);
+      }
+    }
+
+    /***********************************************
+     * Course Creation Mode Functions
+     ***********************************************/
+    let createWaypoints = [];
+    let createMarkers = [];
+    let createPolyline;
+
+    function initCreateMode() {
+      window.createMap = L.map('createMap').setView([0, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(window.createMap);
+      // Center map on current location if available
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          window.createMap.setView([lat, lng], 15);
+        });
+      }
+      createPolyline = L.polyline([], {color: 'blue'}).addTo(window.createMap);
+
+      window.createMap.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+        var name = prompt("Enter waypoint name:");
+        if (name) {
+          var marker = L.marker([lat, lng], {draggable: true}).addTo(window.createMap)
+                        .bindPopup(name).openPopup();
+          marker.waypointName = name;
+          marker.on('dragend', function(e) { updateCreateWaypoints(); });
+          marker.on('contextmenu', function(e) {
+            window.createMap.removeLayer(marker);
+            createMarkers = createMarkers.filter(m => m !== marker);
+            updateCreateWaypoints();
+          });
+          createMarkers.push(marker);
+          updateCreateWaypoints();
+        }
+      });
+    }
+
+    function updateCreateWaypoints() {
+      createWaypoints = createMarkers.map(function(marker) {
+        var pos = marker.getLatLng();
+        return {lat: pos.lat, lng: pos.lng, name: marker.waypointName};
+      });
+      createPolyline.setLatLngs(createMarkers.map(m => m.getLatLng()));
+    }
+
+    document.getElementById('saveCourse').addEventListener('click', function() {
+      var courseName = document.getElementById('courseName').value.trim();
+      if (!courseName) {
+        alert("Please enter a course name.");
+        return;
+      }
+      if (createWaypoints.length < 2) {
+        alert("Please add at least two waypoints.");
+        return;
+      }
+      var course = { name: courseName, waypoints: createWaypoints };
+      courses[courseName] = course;
+      persistCourses();
+      alert("Course saved successfully.");
+      // Optionally clear the map for a new course
+      createMarkers.forEach(marker => window.createMap.removeLayer(marker));
+      createMarkers = [];
+      createWaypoints = [];
+      createPolyline.setLatLngs([]);
+      document.getElementById('courseName').value = "";
+    });
+
+    /***********************************************
+     * Race Navigation Mode Functions
+     ***********************************************/
+    let navMap, userMarker, racePolyline;
+    let currentCourse = null;
+    let currentIndex = 0;
+    let navigationStarted = false;
+    let latestPosition = null;
+    let compassMode = false;
+
+    function initNavMode() {
+      window.navMap = L.map('navMap').setView([0, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(window.navMap);
+    }
+
+    function populateCourseSelect() {
+      var courseSelect = document.getElementById('courseSelect');
+      courseSelect.innerHTML = "";
+      for (let key in courses) {
+        let option = document.createElement('option');
+        option.value = key;
+        option.text = key;
+        courseSelect.appendChild(option);
+      }
+    }
+
+    document.getElementById('startRace').addEventListener('click', function() {
+      // Reset navigation state
+      currentIndex = 0;
+      navigationStarted = true;
+      // Load selected course
+      var courseName = document.getElementById('courseSelect').value;
+      currentCourse = courses[courseName];
+      if (!currentCourse) {
+        alert("Course not found.");
+        return;
+      }
+      // Remove previous polyline if exists
+      if (racePolyline) { navMap.removeLayer(racePolyline); }
+      var latlngs = currentCourse.waypoints.map(wp => [wp.lat, wp.lng]);
+      racePolyline = L.polyline(latlngs, {color: 'red'}).addTo(navMap);
+      navMap.setView(latlngs[0], 15);
+      updateNavigationInfo();
+      startLocationTracking();
+      // Request device orientation permission if needed
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(response => {
+            if (response === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation);
+            } else {
+              alert('Device orientation permission not granted');
+            }
+          })
+          .catch(console.error);
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    });
+
+    document.getElementById('nextButton').addEventListener('click', function() {
+      advanceWaypoint();
+    });
+    document.getElementById('prevButton').addEventListener('click', function() {
+      goToPreviousWaypoint();
+    });
+
+    function updateNavigationInfo() {
+      if (!currentCourse || currentIndex >= currentCourse.waypoints.length) return;
+      document.getElementById('currentWaypoint').innerText = 'Current Waypoint: ' + currentCourse.waypoints[currentIndex].name;
+      if (currentIndex + 1 < currentCourse.waypoints.length) {
+        document.getElementById('nextWaypoint').innerText = 'Next Waypoint: ' + currentCourse.waypoints[currentIndex+1].name;
+      } else {
+        document.getElementById('nextWaypoint').innerText = 'Final Waypoint reached';
+      }
+      document.getElementById('progress').innerText = 'Waypoint ' + (currentIndex+1) + ' of ' + currentCourse.waypoints.length;
+    }
+
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+      var rad = Math.PI / 180;
+      var dLon = (lon2 - lon1) * rad;
+      var y = Math.sin(dLon) * Math.cos(lat2 * rad);
+      var x = Math.cos(lat1 * rad) * Math.sin(lat2 * rad) -
+              Math.sin(lat1 * rad) * Math.cos(lat2 * rad) * Math.cos(dLon);
+      var brng = Math.atan2(y, x) * (180 / Math.PI);
+      return (brng + 360) % 360;
+    }
+
+    function updateNavigation(position, heading) {
+      if (!currentCourse || currentIndex >= currentCourse.waypoints.length) return;
+      var lat = position.coords.latitude;
+      var lng = position.coords.longitude;
+      
+      if (!userMarker) {
+        userMarker = L.marker([lat, lng]).addTo(navMap);
+      } else {
+        userMarker.setLatLng([lat, lng]);
+      }
+      navMap.panTo([lat, lng]);
+      
+      var nextWP = currentCourse.waypoints[currentIndex+1];
+      if (!nextWP) {
+        document.getElementById('directionDisplay').innerText = 'Race Completed!';
+        document.getElementById('distanceDisplay').innerText = '';
+        return;
+      }
+      var targetBearing = calculateBearing(lat, lng, nextWP.lat, nextWP.lng);
+      var diff = targetBearing - heading;
+      diff = ((diff + 540) % 360) - 180;
+      var turnDirection = diff > 0 ? 'Turn Right' : 'Turn Left';
+      var degrees = Math.abs(diff).toFixed(0);
+      document.getElementById('directionDisplay').innerText = turnDirection + ' ' + degrees + '°';
+      
+      var distance = navMap.distance([lat, lng], [nextWP.lat, nextWP.lng]);
+      if (distance < 1852) {
+        document.getElementById('distanceDisplay').innerText = 'Distance: ' + Math.round(distance) + ' m';
+      } else {
+        var nauticalMiles = distance / 1852;
+        document.getElementById('distanceDisplay').innerText = 'Distance: ' + nauticalMiles.toFixed(1) + ' NM';
+      }
+      
+      if (compassMode) {
+        var windInput = document.getElementById('windInput');
+        var angle_wind = parseFloat(windInput.value) || 0;
+        if (angle_wind > 180) {
+          angle_wind -= 360;
+        } else if (angle_wind < -180) {
+          angle_wind += 360;
+        }
+        var trueNorthInput = document.getElementById('trueNorthInput');
+        var trueNorthAdjustment = parseFloat(trueNorthInput.value) || 0;
+        if (trueNorthAdjustment > 180) {
+          trueNorthAdjustment -= 360;
+        } else if (trueNorthAdjustment < -180) {
+          trueNorthAdjustment += 360;
+        }
+        var finalDiff = diff + angle_wind + trueNorthAdjustment;
+        document.getElementById('compassNeedle').style.transform = 'translateX(-50%) rotate(' + finalDiff + 'deg)';
+      }
+      
+      if (distance < 20) {
+        advanceWaypoint();
+      }
+    }
+
+    function advanceWaypoint() {
+      if (!currentCourse) return;
+      if (currentIndex + 1 < currentCourse.waypoints.length) {
+        currentIndex++;
+        updateNavigationInfo();
+      } else {
+        alert("Race Completed!");
+        navigationStarted = false;
+      }
+    }
+
+    function goToPreviousWaypoint() {
+      if (!currentCourse) return;
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateNavigationInfo();
+      } else {
+        alert("Already at the starting waypoint.");
+      }
+    }
+
+    function startLocationTracking() {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(function(pos) {
+          latestPosition = pos;
+          var currentHeading = window.currentHeading || 0;
+          updateNavigation(pos, currentHeading);
+        }, function(err) {
+          console.error(err);
+        }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 });
+      } else {
+        alert("Geolocation not supported.");
+      }
+    }
+
+    function handleOrientation(event) {
+      var heading;
+      if (event.webkitCompassHeading) {
+        heading = event.webkitCompassHeading;
+      } else if (event.alpha !== null) {
+        heading = 360 - event.alpha;
+      }
+      if (heading !== undefined) {
+        window.currentHeading = heading;
+        if (latestPosition) {
+          updateNavigation(latestPosition, window.currentHeading);
+        }
+      }
+    }
+
+    document.getElementById('toggleMode').addEventListener('click', function(){
+      compassMode = !compassMode;
+      if (compassMode) {
+        document.getElementById('navMap').style.display = 'none';
+        document.getElementById('compassContainer').style.display = 'block';
+        this.innerText = 'Switch to Map Mode';
+      } else {
+        document.getElementById('navMap').style.display = 'block';
+        document.getElementById('compassContainer').style.display = 'none';
+        this.innerText = 'Switch to Compass Mode';
+      }
+    });
+  </script>
 </body>
 </html>
