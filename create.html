@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create Course - Sailing Race Course Navigator</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-sA+SkpljIEbPp1M6v1lwnQ4n92tE5G6R2J9dD+FhH9Y=" crossorigin=""/>
+</head>
+<body>
+  <header>
+    <h1>Create Course</h1>
+    <nav><a href="index.html">Home</a></nav>
+  </header>
+  <main>
+    <div id="map" style="height: 70vh;"></div>
+    <div id="controls">
+      <input type="text" id="courseName" placeholder="Enter course name" />
+      <button id="saveCourse">Save Course</button>
+      <p>Click on the map to add waypoints. Drag markers to reposition them, right-click to remove.</p>
+    </div>
+  </main>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-DxoaCAY8G2A+2Q+K1x5FGS5AtU0v1K2B06em6+6Bhi0=" crossorigin=""></script>
+  <!-- Common functions and course storage -->
+  <script src="js/common.js"></script>
+  <!-- Create page specific script -->
+  <script src="js/create.js"></script>
+</body>
+</html>

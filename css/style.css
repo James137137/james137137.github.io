@@ -1,0 +1,72 @@
+/* css/style.css */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  color: #333;
+}
+
+header {
+  background: #0066cc;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+main {
+  padding: 10px;
+}
+
+#map {
+  width: 100%;
+  height: 400px;
+  margin-bottom: 10px;
+}
+
+#controls,
+#top-bar,
+#navigation-controls {
+  margin: 10px 0;
+  text-align: center;
+}
+
+input, button, select {
+  padding: 8px;
+  margin: 5px;
+  font-size: 1em;
+}
+
+/* Compass view styling */
+#compass {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+}
+
+#compassFace {
+  width: 200px;
+  height: 200px;
+  border: 5px solid #333;
+  border-radius: 50%;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+#compassNeedle {
+  width: 4px;
+  height: 90px;
+  background: red;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform-origin: bottom center;
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test GPS & Compass - Sailing Race Course Navigator</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Specific styles for test page */
+    #testContainer {
+      text-align: center;
+      padding: 20px;
+      background: #e0ffe0;
+      margin: 20px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Test GPS & Compass</h1>
+    <nav><a href="index.html">Home</a></nav>
+  </header>
+  <main>
+    <div id="testContainer">
+      <button id="requestPermission">Request Device Orientation Permission</button>
+      <p id="permissionStatus">Permission not requested yet.</p>
+      <p>Latitude: <span id="latitude">--</span></p>
+      <p>Longitude: <span id="longitude">--</span></p>
+      <p>Compass Heading: <span id="compassHeading">--</span></p>
+    </div>
+  </main>
+  <!-- Test page specific script -->
+  <script src="js/test.js"></script>
+</body>
+</html>
