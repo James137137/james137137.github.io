@@ -9,7 +9,7 @@
     --bg:#0f172a; --panel:#0b1220; --muted:#94a3b8; --text:#e5e7eb;
     --blue:#3b82f6;           /* bar outline */
     --axis:#0a0a0a;           /* axis black */
-    --line:#9ca3af;           /* grey sim lines */
+    --line:#ffffff;           /* White sim lines */
     --grid:#1f2937;
   }
   *{box-sizing:border-box}
@@ -336,7 +336,7 @@ function simulateOnce(){
 function simulateMany(){
   if(!currentKey){ alert("Pick a scenario first."); return; }
   let times = parseInt(timesInput.value,10);
-  if(!Number.isFinite(times) || times<10){ alert("Enter N ≥ 10"); return; }
+  if(!Number.isFinite(times) || times<1){ alert("Enter N ≥ 1"); return; }
 
   const s = SCENARIOS[currentKey];
 
