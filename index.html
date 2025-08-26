@@ -1,24 +1,385 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sailing Race Course Navigator</title>
-  <link rel="stylesheet" href="css/style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Year 13 Probability — Simulation Dashboard (Exam-style band)</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#0b1220; --muted:#94a3b8; --text:#e5e7eb;
+    --blue:#3b82f6;           /* bar outline */
+    --axis:#0a0a0a;           /* axis black */
+    --line:#9ca3af;           /* grey sim lines */
+    --grid:#1f2937;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    background: radial-gradient(1200px 800px at 10% -10%, #1f2937 0, var(--bg) 55%) fixed;
+    color:var(--text);
+  }
+  header,main,footer{max-width:1100px; margin:20px auto; padding:0 16px}
+  h1{margin:.2rem 0 .25rem; font-weight:700}
+  p.lead{margin:.25rem 0 1rem; color:var(--muted)}
+  .btn-row{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+  button.btn{
+    border:1px solid #1f2937; border-radius:12px; padding:12px 10px;
+    background:linear-gradient(180deg,#1f293780,#0b1220 60%); color:var(--text);
+    font-weight:600; cursor:pointer;
+    transition:transform .05s ease-out,border-color .15s ease-out,box-shadow .15s ease-out;
+    box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  button.btn:hover{transform:translateY(-1px); border-color:#334155}
+  button.btn.active{border-color:#22d3ee; box-shadow:0 0 0 2px #0891b2 inset,0 8px 28px rgba(34,211,238,.15)}
+  .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0}
+  .controls .spacer{flex:1}
+  input[type="number"]{
+    width:140px; padding:9px 10px; border-radius:10px; border:1px solid #253045;
+    background:#0b1220; color:#e2e8f0; font-weight:600;
+  }
+  button.secondary{
+    background:#0b1220; border:1px solid #253045; color:#cbd5e1; border-radius:10px; padding:10px 12px; font-weight:600;
+  }
+  button.secondary:hover{border-color:#3b82f6; color:#e2e8f0}
+  .pill{display:inline-block; padding:2px 8px; border-radius:999px; font-size:.8rem; background:#0b1220; border:1px solid #1f2937; color:#cbd5e1}
+  .panel{background:linear-gradient(180deg,#0b1220 10%,#0a0f1a 100%); border:1px solid #1f2937; border-radius:16px; padding:16px; box-shadow:0 12px 36px rgba(0,0,0,.35)}
+  .grid{display:grid; grid-template-columns:1fr; gap:16px}
+  @media(min-width:920px){.grid{grid-template-columns:1.1fr .9fr}}
+  h2{margin:.25rem 0 .5rem; font-size:1.25rem}
+  .meta{color:var(--muted); font-size:.95rem; margin:.25rem 0 .75rem}
+  table{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; background:#0b1220}
+  th,td{border-bottom:1px solid #1f2937; padding:8px 10px; text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  svg{width:100%; height:auto; display:block; background:#0b1220}
+  .axis{stroke:var(--axis); stroke-width:2}
+  .ygrid{stroke:var(--grid); stroke-width:1; opacity:.5}
+  .bar{fill:none; stroke:var(--blue); stroke-width:2.5}
+  .simline{fill:none; stroke:var(--line); stroke-width:1.25; opacity:.15}
+  .xlabel{fill:#0a0a0a}
+  .tick{fill:#cbd5e1; font-size:12px}
+  .xlabel2{fill:#cbd5e1; font-size:13px}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Sailing Race Course Navigator</h1>
-  </header>
-  <main>
-    <ul>
-      <li><a href="create.html">Create Course</a></li>
-      <li><a href="navigate.html">Navigate Race</a></li>
-      <li><a href="test.html">Test GPS/Compass</a></li>
-    </ul>
-  </main>
-  <footer>
-    <p>&copy; 2025 Sailing Race Course Navigator</p>
-  </footer>
+<header>
+  <h1>Year 13 Probability — Simulation Dashboard</h1>
+  <p class="lead">Blue outlined bars show a single experimental run (proportions). Run ×N to overlay the exam-style grey variation band (many faint simulated lines). The y-axis is scaled to proportions.</p>
+
+  <div class="btn-row" role="group" aria-label="Scenarios">
+    <button class="btn" data-scenario="2019">2019 School Roll</button>
+    <button class="btn" data-scenario="2021">2021 Cola Pack</button>
+    <button class="btn" data-scenario="2022">2022 Number Plates</button>
+    <button class="btn" data-scenario="2023">2023 Coffee Payer</button>
+    <button class="btn" data-scenario="2024">2024 Dice</button>
+  </div>
+
+  <div class="controls">
+    <button class="secondary" id="simulateOnce">Simulate once</button>
+    <input type="number" id="timesInput" min="10" step="10" value="1000" title="Number of simulations for the band" />
+    <button class="secondary" id="simulateMany">Run ×N &amp; show variation band</button>
+    <span class="spacer"></span>
+    <span id="scenarioMeta" class="pill">No scenario selected</span>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="panel">
+    <h2 id="resultsTitle">Results</h2>
+    <div id="resultsMeta" class="meta">Select a scenario, then simulate.</div>
+    <div id="chartWrap"></div>
+    <div id="tableWrap"></div>
+  </section>
+
+  <aside class="panel">
+    <h2>Scenario details</h2>
+    <div class="meta" id="details">
+      • <strong>2019 School Roll:</strong> n = 343, fair p(male)=0.5.<br/>
+      • <strong>2021 Cola Pack:</strong> n = 300, fair p(cola)=1/3.<br/>
+      • <strong>2022 Number Plates:</strong> n = 2764 digits, fair p(0–9)=0.1 each.<br/>
+      • <strong>2023 Coffee Payer:</strong> n = 100 meet-ups, fair p(A)=p(B)=p(C)=1/3.<br/>
+      • <strong>2024 Dice:</strong> n = 1000 rolls, fair faces 1–6 = 1/6 each.
+    </div>
+    <h3 style="margin:.75rem 0 .25rem">Notes</h3>
+    <div class="meta">The grey “ribbon” is drawn as many faint polylines (spaghetti) just like the exam figure. The y-axis shows proportions so visuals are comparable across different n.</div>
+  </aside>
+</main>
+
+<footer class="meta" style="margin-bottom:60px">Tip: run once, then overlay ×N to discuss whether the single run looks consistent with the fair model’s typical variation.</footer>
+
+<script>
+/* =================== Helpers =================== */
+const fmt = (x, d=3) => (typeof x === "number" ? x.toFixed(d) : x);
+const sum = a => a.reduce((x,y)=>x+y,0);
+const zeros = n => Array.from({length:n}, ()=>0);
+const clone = a => a.slice();
+function rBinom(n, p){ let k=0; for(let i=0;i<n;i++) if(Math.random()<p) k++; return k; }
+function rMultinom(n, probs){
+  const k = probs.length, cdf = new Array(k); let acc = 0;
+  for(let i=0;i<k;i++){ acc+=probs[i]; cdf[i]=acc; }
+  const out = zeros(k);
+  for(let t=0;t<n;t++){
+    const u = Math.random();
+    for(let i=0;i<k;i++){ if(u<cdf[i]){ out[i]++; break; } }
+  }
+  return out;
+}
+function niceCeil(x){
+  // round up to a "nice" step (0.02/0.05/0.1)
+  const candidates = [0.02,0.05,0.1];
+  for(const s of candidates){
+    const m = Math.ceil((x+0.005)/s)*s;
+    if(m/x < 1.5) return m;
+  }
+  return Math.ceil((x+0.005)/0.1)*0.1;
+}
+function ticksUpTo(max){
+  const step = (max<=0.3?0.05:0.1);
+  const out = [];
+  for(let v=0; v<=max+1e-9; v+=step) out.push(+v.toFixed(10));
+  return out;
+}
+
+/* =================== Scenarios =================== */
+const SCENARIOS = {
+  "2019": {
+    label: "2019 School Roll (males out of 343, p=0.5)",
+    n:343,
+    categories:["Male","Female"],
+    probs:[0.5,0.5],
+    runOnce(){
+      const male = rBinom(this.n,0.5);
+      return [male, this.n-male];
+    }
+  },
+  "2021": {
+    label: "2021 Cola Pack (cola out of 300, p=1/3)",
+    n:300,
+    categories:["Cola","Not cola"],
+    probs:[1/3,2/3],
+    runOnce(){
+      const cola = rBinom(this.n,1/3);
+      return [cola, this.n-cola];
+    }
+  },
+  "2022": {
+    label: "2022 Number Plates (digits 0–9 in 2764 draws, fair)",
+    n:2764,
+    categories:[..."0123456789"],
+    probs:Array(10).fill(0.1),
+    runOnce(){
+      return rMultinom(this.n, this.probs);
+    }
+  },
+  "2023": {
+    label: "2023 Coffee Payer (100 meetings, A/B/C fair)",
+    n:100,
+    categories:["Friend A","Friend B","Friend C"],
+    probs:[1/3,1/3,1/3],
+    runOnce(){
+      return rMultinom(this.n, this.probs);
+    }
+  },
+  "2024": {
+    label: "2024 Dice (1000 rolls, fair 1–6)",
+    n:1000,
+    categories:["1","2","3","4","5","6"],
+    probs:Array(6).fill(1/6),
+    runOnce(){
+      return rMultinom(this.n, this.probs);
+    }
+  }
+};
+
+/* =================== State/UI refs =================== */
+let currentKey = null;
+let lastSingle = null;        // {counts, props}
+const scenarioMeta = document.getElementById("scenarioMeta");
+const resultsTitle = document.getElementById("resultsTitle");
+const resultsMeta  = document.getElementById("resultsMeta");
+const chartWrap    = document.getElementById("chartWrap");
+const tableWrap    = document.getElementById("tableWrap");
+const timesInput   = document.getElementById("timesInput");
+
+function setActiveButton(key){
+  document.querySelectorAll(".btn").forEach(b=> b.classList.toggle("active", b.dataset.scenario === key));
+}
+function selectScenario(key){
+  currentKey = key; lastSingle=null; setActiveButton(key);
+  const s = SCENARIOS[key];
+  scenarioMeta.textContent = s ? s.label : "No scenario selected";
+  resultsTitle.textContent = "Results";
+  resultsMeta.textContent  = "Press “Simulate once” to draw bars, or set N and press “Run ×N & show variation band”.";
+  chartWrap.innerHTML = "";
+  tableWrap.innerHTML = "";
+}
+
+/* =================== Chart (SVG) =================== */
+function renderExamStyleChart({cats, n, propsBars, linesProps, xlabel}){
+  // propsBars: array of proportions for blue bars (may be null to skip)
+  // linesProps: array of arrays [ [p1..pk], [p1..pk], ... ] for spaghetti
+  const k = cats.length;
+  // Determine vertical scale (proportions)
+  let maxVal = 0;
+  if(propsBars) maxVal = Math.max(maxVal, ...propsBars);
+  if(linesProps && linesProps.length){
+    for(const arr of linesProps) maxVal = Math.max(maxVal, ...arr);
+  }
+  maxVal = niceCeil(Math.max(maxVal, 0.2)); // ensure some headroom
+  const ticks = ticksUpTo(maxVal);
+
+  // SVG dims
+  const W=980, H=360, m={l:56,r:18,t:28,b:46};
+  const cw=W-m.l-m.r, ch=H-m.t-m.b;
+
+  const x0 = i => m.l + (i+0.5)*cw/k;          // category center
+  const y  = p => m.t + (1 - p/maxVal)*ch;     // prop -> y
+
+  // Build grid lines + y ticks
+  let grid = "";
+  for(const t of ticks){
+    const yy = y(t);
+    grid += `<line x1="${m.l}" y1="${yy}" x2="${W-m.r}" y2="${yy}" class="ygrid" />`;
+    grid += `<text x="${m.l-8}" y="${yy+4}" text-anchor="end" class="tick">${t.toFixed(2)}</text>`;
+  }
+
+  // Spaghetti lines (limit display for perf)
+  let lines = "";
+  const toDraw = Math.min(linesProps ? linesProps.length : 0, 200); // cap for rendering
+  for(let j=0;j<toDraw;j++){
+    const arr = linesProps[j];
+    if(!arr) break;
+    let d = `M ${x0(0)} ${y(arr[0])}`;
+    for(let i=1;i<k;i++) d += ` L ${x0(i)} ${y(arr[i])}`;
+    lines += `<path d="${d}" class="simline" />`;
+  }
+
+  // Blue outlined bars
+  let bars="";
+  if(propsBars){
+    const barW = (0.72*cw/k);
+    for(let i=0;i<k;i++){
+      const px = x0(i) - barW/2;
+      const py = y(propsBars[i]);
+      const h  = (m.t+ch) - py;
+      bars += `<rect x="${px}" y="${py}" width="${barW}" height="${h}" class="bar" />`;
+    }
+  }
+
+  // Axis line (x)
+  const axis = `<line x1="${m.l}" y1="${m.t+ch}" x2="${W-m.r}" y2="${m.t+ch}" class="axis" />`;
+
+  // X tick labels (categories)
+  let xTicks = "";
+  for(let i=0;i<k;i++){
+    xTicks += `<text x="${x0(i)}" y="${m.t+ch+22}" text-anchor="middle" class="tick">${cats[i]}</text>`;
+  }
+
+  // X axis label (like the exam)
+  const xlabelText = `<text x="${(W/2)}" y="${H-10}" text-anchor="middle" class="xlabel2">${xlabel}</text>`;
+
+  const svg = `
+    <svg viewBox="0 0 ${W} ${H}" aria-label="simulation chart">
+      ${grid}
+      ${lines}
+      ${bars}
+      ${axis}
+      ${xTicks}
+      ${xlabelText}
+    </svg>`;
+  return svg;
+}
+
+/* =================== Rendering tables =================== */
+function renderSingleTable({cats, n, counts, probs}){
+  const rows = counts.map((c,i)=>`
+    <tr><td>${cats[i]}</td><td>${c}</td><td>${fmt(c/n,3)}</td><td>${fmt(n*probs[i],2)}</td><td>${fmt(probs[i],3)}</td></tr>
+  `).join("");
+  return `
+    <h3 style="margin:.5rem 0 .25rem">Single simulation (counts & proportions)</h3>
+    <div class="meta">n = ${n.toLocaleString()}</div>
+    <table>
+      <thead><tr><th>Category</th><th>Count</th><th>Prop</th><th>Expected count</th><th>Model p</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+function renderManyTable({cats, n, avgCounts}){
+  const rows = avgCounts.map((c,i)=>`
+    <tr><td>${cats[i]}</td><td>${fmt(c,2)}</td><td>${fmt(c/n,3)}</td></tr>
+  `).join("");
+  return `
+    <h3 style="margin:.5rem 0 .25rem">Averages over runs</h3>
+    <table>
+      <thead><tr><th>Category</th><th>Avg count</th><th>Avg prop</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+/* =================== Actions =================== */
+function simulateOnce(){
+  if(!currentKey){ alert("Pick a scenario first."); return; }
+  const s = SCENARIOS[currentKey];
+  const counts = s.runOnce();
+  const props = counts.map(c=>c/s.n);
+  lastSingle = {counts, props};
+
+  resultsTitle.textContent = "Single simulation";
+  resultsMeta.textContent  = "Blue outlined bars = one experimental run (proportions).";
+  // chart without band
+  const svg = renderExamStyleChart({
+    cats:s.categories, n:s.n, propsBars:props, linesProps:[],
+    xlabel: `${s.categories.length>6?'Category':'Score on die'} [n = ${s.n}]`
+  });
+  chartWrap.innerHTML = svg;
+  tableWrap.innerHTML = renderSingleTable({cats:s.categories, n:s.n, counts, probs:s.probs});
+}
+
+function simulateMany(){
+  if(!currentKey){ alert("Pick a scenario first."); return; }
+  let times = parseInt(timesInput.value,10);
+  if(!Number.isFinite(times) || times<10){ alert("Enter N ≥ 10"); return; }
+
+  const s = SCENARIOS[currentKey];
+
+  // If no single run yet, generate one (so bars appear with band like in exam figure)
+  if(!lastSingle){
+    const counts = s.runOnce();
+    lastSingle = {counts, props: counts.map(c=>c/s.n)};
+  }
+
+  // Build spaghetti data and averages
+  const k = s.categories.length;
+  const acc = zeros(k);
+  const linesProps = [];
+  for(let t=0;t<times;t++){
+    const c = s.runOnce();
+    for(let i=0;i<k;i++) acc[i]+=c[i];
+    // keep a limited number of lines for rendering (store all is okay; we cap later in SVG)
+    if(t<400) linesProps.push(c.map(v=>v/s.n));
+  }
+  const avgCounts = acc.map(x=>x/times);
+
+  resultsTitle.textContent = `Variation over ${times.toLocaleString()} simulations`;
+  resultsMeta.textContent  = "Grey spaghetti shows typical variation for a fair model. Bars are from the last single run.";
+  const svg = renderExamStyleChart({
+    cats:s.categories, n:s.n,
+    propsBars:lastSingle.props, linesProps,
+    xlabel: `${s.categories.length>6?'Category':'Score on die'} [n = ${s.n}]`
+  });
+  chartWrap.innerHTML = svg;
+  tableWrap.innerHTML =
+    renderSingleTable({cats:s.categories, n:s.n, counts:lastSingle.counts, probs:s.probs}) +
+    renderManyTable({cats:s.categories, n:s.n, avgCounts});
+}
+
+/* =================== Wire up =================== */
+document.querySelectorAll(".btn").forEach(btn=>{
+  btn.addEventListener("click", ()=> selectScenario(btn.dataset.scenario));
+});
+document.getElementById("simulateOnce").addEventListener("click", simulateOnce);
+document.getElementById("simulateMany").addEventListener("click", simulateMany);
+
+/* Default */
+selectScenario("2024");
+</script>
 </body>
 </html>
